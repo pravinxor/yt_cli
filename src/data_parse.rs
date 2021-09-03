@@ -77,18 +77,31 @@ pub(crate) fn get_owner(source: &Value) -> Option<String> {
     Some(clean_quotes(&owner))
 }
 pub(crate) fn get_views(source: &Value) -> Option<String> {
-    let owner = source
+    let views = source
         .get("videoRenderer")?
         .get("viewCountText")?
         .get("simpleText")?
         .to_string();
-    Some(clean_quotes(&owner))
+    Some(clean_quotes(&views))
 }
 pub(crate) fn get_published_time(source: &Value) -> Option<String> {
-    let owner = source
+    let published_time = source
         .get("videoRenderer")?
         .get("publishedTimeText")?
         .get("simpleText")?
         .to_string();
-    Some(clean_quotes(&owner))
+    Some(clean_quotes(&published_time))
+}
+
+pub(crate) fn get_description_snippet(source: &Value) -> Option<String> {
+    let description = source
+        .get("videoRenderer")?
+        .get("detailedMetadataSnippets")?
+        .get(0)?
+        .get("snippetText")?
+        .get("runs")?
+        .get(0)?
+        .get("text")?
+        .to_string();
+    Some(clean_quotes(&description))
 }
