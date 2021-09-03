@@ -1,3 +1,4 @@
+use crate::tools::clean_quotes;
 use lazy_static::lazy_static;
 use regex::Regex;
 use reqwest::blocking::get;
@@ -25,4 +26,69 @@ pub(crate) fn find_json(source: &str) -> core::result::Result<Value, String> {
         Ok(serde_json) => Ok(serde_json),
         Err(error) => Err(error.to_string()),
     }
+}
+pub(crate) fn get_video_vec(source: &Value) -> Option<&Vec<Value>> {
+    source
+        .get("contents")?
+        .get("twoColumnSearchResultsRenderer")?
+        .get("primaryContents")?
+        .get("sectionListRenderer")?
+        .get("contents")?
+        .get(0)?
+        .get("itemSectionRenderer")?
+        .get("contents")?
+        .as_array()
+}
+
+pub(crate) fn get_title(source: &Value) -> Option<String> {
+    let title = source
+        .get("videoRenderer")?
+        .get("title")?
+        .get("runs")?
+        .get(0)?
+        .get("text")?
+        .to_string();
+    Some(clean_quotes(&title))
+}
+pub(crate) fn get_view_count(source: &Value) -> Option<String> {
+    let view_count = source
+        .get("videoRenderer")?
+        .get("viewCountText")?
+        .get("simpleText")?
+        .to_string();
+    Some(clean_quotes(&view_count))
+}
+pub(crate) fn get_length(source: &Value) -> Option<String> {
+    let length = source
+        .get("videoRenderer")?
+        .get("lengthText")?
+        .get("simpleText")?
+        .to_string();
+    Some(clean_quotes(&length))
+}
+pub(crate) fn get_owner(source: &Value) -> Option<String> {
+    let owner = source
+        .get("videoRenderer")?
+        .get("ownerText")?
+        .get("runs")?
+        .get(0)?
+        .get("text")?
+        .to_string();
+    Some(clean_quotes(&owner))
+}
+pub(crate) fn get_views(source: &Value) -> Option<String> {
+    let owner = source
+        .get("videoRenderer")?
+        .get("viewCountText")?
+        .get("simpleText")?
+        .to_string();
+    Some(clean_quotes(&owner))
+}
+pub(crate) fn get_published_time(source: &Value) -> Option<String> {
+    let owner = source
+        .get("videoRenderer")?
+        .get("publishedTimeText")?
+        .get("simpleText")?
+        .to_string();
+    Some(clean_quotes(&owner))
 }
