@@ -2,19 +2,32 @@ mod data_display;
 mod data_parse;
 mod tools;
 
-use crate::data_display::format_out;
-use crate::data_parse::{find_json, get_description_snippet, get_video_vec, get_view_count};
+use crate::data_display::display;
+use crate::data_parse::{find_json, get_video_vec};
 use crate::tools::exit_error;
-use std::io::stdout;
+use crossterm::cursor::MoveTo;
+use crossterm::event::{read, Event};
+use crossterm::style::{Attribute, Color, SetAttribute, SetForegroundColor};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType};
+use crossterm::ExecutableCommand;
+use std::io::{stdin, stdout, Write};
 
 fn main() {
     let mut stdout = stdout();
-    let query = "shrek meme";
-    let data = match data_parse::get_source(query) {
+    let mut query = String::new();
+    print!("Enter a search query >>> ");
+    stdout.flush().unwrap();
+    stdout
+        .execute(SetAttribute(Attribute::Italic))
+        .unwrap()
+        .execute(SetForegroundColor(Color::Cyan))
+        .unwrap();
+    stdin().read_line(&mut query).unwrap();
+    stdout.execute(SetAttribute(Attribute::Reset)).unwrap();
+    let data = match data_parse::get_source(query.trim_end_matches(&['\r', '\n'][..])) {
         Ok(data) => data,
         Err(error) => exit_error(&error.to_string()),
     };
-
     let json = match find_json(&data) {
         Ok(json) => json,
         Err(error) => exit_error(error.as_str()),
@@ -23,7 +36,13 @@ fn main() {
         None => exit_error("Could not find/parse json"),
         Some(vec) => vec,
     };
-    for video_datum in video_data {
-        format_out(video_datum, 100);
+    enable_raw_mode().unwrap();
+    stdout.execute(Clear(ClearType::All)).unwrap();
+    display(video_data);
+    loop {
+        if let Event::Resize(_width, _height) = read().unwrap() {
+            stdout.execute(Clear(ClearType::All)).unwrap();
+            display(video_data);
+        }
     }
 }
